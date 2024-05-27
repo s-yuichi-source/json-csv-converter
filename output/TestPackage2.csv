@@ -1,0 +1,2 @@
+name,version,private,scripts
+json-csv-converter,1.0.0,true,tsc
