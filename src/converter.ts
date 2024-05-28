@@ -7,7 +7,7 @@ const inputDir = 'input/';
 const outputDir = 'output/';
 
 // CSVをJSONに変換
-function csvToJson(filePath: string): void {
+const csvToJson = (filePath: string): void => {
     const results: object[] = [];
     fs.createReadStream(filePath)
         .pipe(csv())
@@ -46,12 +46,27 @@ const flatObjectToNested = (flatObj: any): any => {
     for (const flatKey in flatObj) {
         const keyParts = flatKey.split('.');
         keyParts.reduce((currentLevel: any, keyPart: string, partIndex: number) => {
-            if (partIndex === keyParts.length - 1) {
-                currentLevel[keyPart] = flatObj[flatKey];
+            const isLastPart = partIndex === keyParts.length - 1;
+            const arrayIndex = Number(keyPart);
+
+            if (!isNaN(arrayIndex)) {
+                if (!Array.isArray(currentLevel)) {
+                    currentLevel[keyParts[partIndex - 1]] = [];
+                }
+                if (isLastPart) {
+                    currentLevel[arrayIndex] = flatObj[flatKey];
+                } else {
+                    currentLevel[arrayIndex] = currentLevel[arrayIndex] || [];
+                }
+                return currentLevel[arrayIndex];
             } else {
-                currentLevel[keyPart] = currentLevel[keyPart] || {};
+                if (isLastPart) {
+                    currentLevel[keyPart] = flatObj[flatKey];
+                } else {
+                    currentLevel[keyPart] = currentLevel[keyPart] || {};
+                }
+                return currentLevel[keyPart];
             }
-            return currentLevel[keyPart];
         }, nestedObj);
     }
 
@@ -83,3 +98,5 @@ fs.readdirSync(inputDir).forEach(file => {
         jsonToCsv(filePath);
     }
 });
+
+export { csvToJson, jsonToCsv, flatObjectToNested, flatJsonToObject };
